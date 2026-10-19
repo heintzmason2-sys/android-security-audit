@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and local audit output
+*.log
+audit_output/
