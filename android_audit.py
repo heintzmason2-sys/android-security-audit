@@ -1,6 +1,9 @@
 
 import subprocess
 import sys
+from pathlib import Path
+REPORT_DIR = Path("reports")
+REPORT_FILE = REPORT_DIR / "android_audit_report.txt"
 
 
 def run_adb_command(command):
@@ -92,47 +95,58 @@ def check_connected_device():
 
 
 def main():
-    print("==========================")
-    print("  ANDROID SECURITY AUDIT")
-    print("==========================")
+   
 
     # Stop before running the audit if no usable device is available.
     if not check_connected_device():
         sys.exit(1)
 
-    android_version = run_adb_command(
-        ["getprop", "ro.build.version.release"]
-    )
-    print(f"Android Version: {android_version}")
+    results = {
+        "Android Version": run_adb_command(
+            ["getprop", "ro.build.version.release"]
+        ),
+        "Security Patch Level": run_adb_command(
+            ["getprop", "ro.build.version.security_patch"]
+        ),
+        "Bootloader Locked": run_adb_command(
+            ["getprop", "ro.boot.flash.locked"]
+        ),
+        "Verified Boot State": run_adb_command(
+            ["getprop", "ro.boot.verifiedbootstate"]
+        ),
+        "SELinux Status": run_adb_command(["getenforce"]),
+        "Encryption State": run_adb_command(
+            ["getprop", "ro.crypto.state"]
+        ),
+        "Encryption Type": run_adb_command(
+            ["getprop", "ro.crypto.type"]
+        ),
+    }
+    # Build the report one line at a time.
+    report_lines = [
+        "==========================",
+        "  ANDROID SECURITY AUDIT",
+        "==========================",
+        "",
+    ]
 
-    security_patch = run_adb_command(
-        ["getprop", "ro.build.version.security_patch"]
-    )
-    print(f"Security Patch Level: {security_patch}")
+    for check, result in results.items():
+        report_lines.append(f"{check}: {result}")
 
-    bootloader_locked = run_adb_command(
-        ["getprop", "ro.boot.flash.locked"]
-    )
-    print(f"Bootloader Locked: {bootloader_locked}")
+    # Join the lines into one string, separated by newline characters.
+    report_text = "\n".join(report_lines) + "\n"
 
-    verified_boot = run_adb_command(
-        ["getprop", "ro.boot.verifiedbootstate"]
-    )
-    print(f"Verified Boot State: {verified_boot}")
+    # Display the report in the terminal.
+    print(report_text, end="")
 
-    selinux_status = run_adb_command(["getenforce"])
+    # Create the reports directory if it doesn't exist.
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-    encryption_state = run_adb_command(
-        ["getprop", "ro.crypto.state"]
-    )
+    # Save the latest audit report, replacing the previous report.
+    REPORT_FILE.write_text(report_text, encoding="utf-8")
 
-    encryption_type = run_adb_command(
-        ["getprop", "ro.crypto.type"]
-    )
+    print(f"\nReport saved to: {REPORT_FILE}")
 
-    print(f"SELinux Status: {selinux_status}")
-    print(f"Encryption State: {encryption_state}")
-    print(f"Encryption Type: {encryption_type}")
 
 
 if __name__ == "__main__":

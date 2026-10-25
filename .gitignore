@@ -14,3 +14,6 @@ venv/
 # Logs and local audit output
 *.log
 audit_output/
+
+# Device-specific Android audit reports
+reports/
