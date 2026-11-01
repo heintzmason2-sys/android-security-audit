@@ -139,13 +139,16 @@ def main():
     # Display the report in the terminal.
     print(report_text, end="")
 
-    # Create the reports directory if it doesn't exist.
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    # Create the reports directory and save the audit report.
+    try:
+        REPORT_DIR.mkdir(parents=True, exist_ok=True)
+        REPORT_FILE.write_text(report_text, encoding="utf-8")
 
-    # Save the latest audit report, replacing the previous report.
-    REPORT_FILE.write_text(report_text, encoding="utf-8")
+        print(f"\nReport saved to: {REPORT_FILE}")
 
-    print(f"\nReport saved to: {REPORT_FILE}")
+    except OSError as error:
+        print(f"\nERROR: Unable to save audit report: {error}")
+        sys.exit(1)
 
 
 
